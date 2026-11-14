@@ -33,7 +33,15 @@ interface PlotProps {
 }
 
 /** Gráfico de líneas sobre uPlot, con marcadores verticales y tema claro/oscuro. */
-export function Plot({
+export function Plot(props: PlotProps) {
+  // uPlot no admite series vacías: mientras no haya datos se reserva el lugar.
+  if (props.x.length < 2) {
+    return <div className="plot plot-empty" style={{ height: (props.height ?? 200) + 30 }} />;
+  }
+  return <PlotInner {...props} />;
+}
+
+function PlotInner({
   x,
   series,
   xUnit,

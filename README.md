@@ -11,7 +11,7 @@ estudiantes de ingeniería (Física II, Electrotecnia, Electrónica). Corre ente
 - [x] **Etapa 2 – DC resistivo:** MNA, tensiones de nodo, corrientes animadas, potencias, medidores, Thevenin y paso a paso.
 - [x] **Etapa 3 – Transitorios:** capacitores, bobinas, interruptores, V(t) e I(t) con τ marcada, RC/RL/RLC con su ecuación diferencial.
 - [x] **Etapa 4 – Alterna:** fuente senoidal, impedancias, diagrama fasorial animado, P/Q/S y triángulo de potencias, Bode, resonancia y filtros.
-- [ ] **Etapa 5 – Campos:** electrostática, magnetostática e inducción.
+- [x] **Etapa 5 – Campos:** cargas puntuales y placas (vectores, líneas, equipotenciales), Biot-Savart (cable, espira, solenoide) e inducción de Faraday-Lenz.
 - [ ] **Etapa 6 – Pulido:** ejemplos, compartir por link, temas, accesibilidad.
 
 ## Cómo correrlo

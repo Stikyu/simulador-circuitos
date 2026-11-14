@@ -4,6 +4,7 @@ import { loadLocal, saveLocal } from './editor/persistence';
 import { EditorStore } from './editor/store';
 import { exampleById } from './examples';
 import { useEditor } from './editor/useEditor';
+import { FieldsTab } from './fields/FieldsTab';
 import { setProp } from './editor/ops';
 import { ACPanel } from './ui/ACPanel';
 import { AnalysisPanel, type Mode } from './ui/AnalysisPanel';
@@ -27,6 +28,9 @@ const MODES: Mode[] = ['dc', 'tran', 'ac'];
 
 export function App() {
   const { circuit, selection } = useEditor(store);
+  const [section, setSection] = useState<'circuitos' | 'campos'>(() =>
+    window.location.hash.startsWith('#campos') ? 'campos' : 'circuitos',
+  );
   const [fitKey, setFitKey] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>(() => suggestMode(store.getState().circuit, MODES));
@@ -68,8 +72,36 @@ export function App() {
 
   return (
     <div className="app">
-      <TopBar store={store} onLoaded={onLoaded} onMessage={notify} />
-      <main className="workspace with-panel">
+      <TopBar
+        store={store}
+        onLoaded={onLoaded}
+        onMessage={notify}
+        showFileActions={section === 'circuitos'}
+        left={
+          <nav className="main-tabs" role="tablist" aria-label="Secciones">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={section === 'circuitos'}
+              className={section === 'circuitos' ? 'active' : ''}
+              onClick={() => setSection('circuitos')}
+            >
+              Circuitos
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={section === 'campos'}
+              className={section === 'campos' ? 'active' : ''}
+              onClick={() => setSection('campos')}
+            >
+              Campos
+            </button>
+          </nav>
+        }
+      />
+      {section === 'campos' && <FieldsTab />}
+      <main className="workspace with-panel" hidden={section !== 'circuitos'}>
         <aside className="sidebar">
           <Palette store={store} />
           <Inspector store={store} />
