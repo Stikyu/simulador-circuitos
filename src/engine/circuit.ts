@@ -11,7 +11,17 @@ export interface Point {
 /** Rotación en pasos de 90° en sentido horario (con el eje y hacia abajo). */
 export type Rotation = 0 | 1 | 2 | 3;
 
-export type ComponentType = 'resistor' | 'vdc' | 'ground';
+export type ComponentType =
+  | 'resistor'
+  | 'vdc'
+  | 'idc'
+  | 'vac'
+  | 'capacitor'
+  | 'inductor'
+  | 'switch'
+  | 'ammeter'
+  | 'voltmeter'
+  | 'ground';
 
 export type PropValue = number | boolean;
 
