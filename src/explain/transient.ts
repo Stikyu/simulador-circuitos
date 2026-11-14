@@ -194,8 +194,8 @@ export function explainTransient(
   if (t0 > 0) markers.push({ x: t0, label: 't₀' });
   const steps: Step[] = [];
   const final = model.acFreq ? null : finalValues(nl, t0);
-  let method = 'Integración numérica';
-  let summary = '';
+  let method: string;
+  let summary: string;
   let analytic: TransientExplanation['analytic'];
 
   const integrator: Step = {
