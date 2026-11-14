@@ -1586,3 +1586,187 @@ input[type='checkbox'] {
     margin-left: 0;
   }
 }
+
+/* --- Galería de ejemplos -------------------------------------------------- */
+
+.btn.icon {
+  width: 34px;
+  padding: 6px 0;
+  text-align: center;
+}
+
+.topbar-actions .btn + .btn {
+  margin-left: 6px;
+}
+
+.gallery {
+  width: min(960px, calc(100vw - 32px));
+  max-height: min(86vh, 820px);
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.gallery::backdrop {
+  background: rgba(8, 12, 16, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.gallery header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 22px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  z-index: 1;
+}
+
+.gallery h2 {
+  margin: 0 0 2px;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.gallery header p {
+  margin: 0;
+  font-size: 13px;
+  max-width: 60ch;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  padding: 16px 22px 22px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--canvas);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.12s,
+    transform 0.12s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.card .preview {
+  width: 100%;
+  height: 110px;
+  margin-bottom: 6px;
+  border-radius: 7px;
+  background-color: var(--panel-2);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+.card strong {
+  font-size: 14.5px;
+}
+
+.card-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.card-tags {
+  display: flex;
+  gap: 5px;
+}
+
+.card-tags span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.card-tags span + span::before {
+  content: '· ';
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  .topbar-spacer {
+    display: none;
+  }
+
+  .topbar-actions {
+    flex: 1 1 auto;
+  }
+
+  .sep {
+    display: none;
+  }
+}
+
+/* --- Ajustes finales para pantallas angostas ------------------------------ */
+
+@media (max-width: 900px) {
+  .sidebar {
+    padding: 10px;
+  }
+
+  .palette-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .palette-item {
+    flex: 0 0 86px;
+  }
+
+  .tool-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .inspector .muted.small {
+    display: none;
+  }
+
+  .scene-tabs button span {
+    display: none;
+  }
+
+  .gallery-grid {
+    padding: 12px;
+  }
+}

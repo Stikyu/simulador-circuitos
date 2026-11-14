@@ -177,6 +177,20 @@ export function Canvas({ store, fitKey, overlay, errorIds, banner }: CanvasProps
           e.preventDefault();
           store.commit(deleteItems(st.circuit, st.selection), []);
         }
+      } else if (e.key === 'Enter' && st.tool.kind === 'place' && svgRef.current) {
+        // Accesible sin mouse: coloca en el centro de lo que se está viendo.
+        e.preventDefault();
+        const rect = svgRef.current.getBoundingClientRect();
+        const v = viewRef.current;
+        const at = {
+          x: Math.round((rect.width / 2 - v.x) / v.k / GRID),
+          y: Math.round((rect.height / 2 - v.y) / v.k / GRID),
+        };
+        while (st.circuit.components.some((k) => k.x === at.x && k.y === at.y)) at.y += 2;
+        const r = addComponent(st.circuit, st.tool.type, at, st.tool.rot);
+        store.commit(r.circuit);
+        store.setTool({ kind: 'select' });
+        store.select([r.id]);
       } else if (key === 'r') {
         if (st.tool.kind === 'place') {
           store.setTool({ ...st.tool, rot: ((st.tool.rot + 1) % 4) as Rotation });
@@ -537,7 +551,7 @@ export function Canvas({ store, fitKey, overlay, errorIds, banner }: CanvasProps
 
       <div className="canvas-hint" aria-live="polite">
         {tool.kind === 'place' &&
-          `Clic para colocar: ${defOf(tool.type).name} · R rota · Esc termina`}
+          `Clic para colocar: ${defOf(tool.type).name} · Enter lo pone al centro · R rota · Esc termina`}
         {tool.kind === 'wire' &&
           (wireStart ? 'Clic para fijar el tramo · Esc termina' : 'Clic para empezar un cable')}
         {tool.kind === 'select' &&

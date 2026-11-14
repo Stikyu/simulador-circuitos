@@ -2,24 +2,44 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from './editor/Canvas';
 import { loadLocal, saveLocal } from './editor/persistence';
 import { EditorStore } from './editor/store';
-import { exampleById } from './examples';
+import { circuitFromHash, shareUrl } from './editor/share';
+import { exampleById, type Example } from './examples';
 import { useEditor } from './editor/useEditor';
 import { FieldsTab } from './fields/FieldsTab';
 import { setProp } from './editor/ops';
 import { ACPanel } from './ui/ACPanel';
 import { AnalysisPanel, type Mode } from './ui/AnalysisPanel';
 import { DCPanel } from './ui/DCPanel';
+import { Gallery } from './ui/Gallery';
 import { Inspector } from './ui/Inspector';
 import { Palette } from './ui/Palette';
+import { setTheme, useTheme } from './ui/theme';
 import { TopBar } from './ui/TopBar';
 import { TransientPanel } from './ui/TransientPanel';
 import { DEFAULT_TRANSIENT, suggestMode, useAnalysis } from './ui/useAnalysis';
 
-/** Circuito inicial: un ejemplo pedido por URL (#ejemplo=id) o el último autoguardado. */
+/** Mensaje pendiente de mostrar al arrancar (por ejemplo, un link roto). */
+let startupMessage: string | null = null;
+
+/**
+ * Circuito inicial, por orden de prioridad: el que viene en el link (#c=...),
+ * un ejemplo pedido por URL (#ejemplo=id), el último autoguardado y, la primera
+ * vez, el divisor de tensión para no arrancar con la pantalla vacía.
+ */
 function initialCircuit() {
-  const m = /^#ejemplo=([\w-]+)/.exec(window.location.hash);
+  const hash = window.location.hash;
+  try {
+    const shared = circuitFromHash(hash);
+    if (shared) {
+      startupMessage = 'Se abrió el circuito compartido por link.';
+      return shared;
+    }
+  } catch (err) {
+    startupMessage = err instanceof Error ? err.message : 'El link no es válido.';
+  }
+  const m = /^#ejemplo=([\w-]+)/.exec(hash);
   const example = m ? exampleById(m[1]) : undefined;
-  return example ? example.build() : (loadLocal() ?? undefined);
+  return example?.build() ?? loadLocal() ?? exampleById('divisor')!.build();
 }
 
 const store = new EditorStore(initialCircuit());
@@ -32,7 +52,9 @@ export function App() {
     window.location.hash.startsWith('#campos') ? 'campos' : 'circuitos',
   );
   const [fitKey, setFitKey] = useState(0);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(startupMessage);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const theme = useTheme();
   const [mode, setMode] = useState<Mode>(() => suggestMode(store.getState().circuit, MODES));
   const [show, setShow] = useState({ voltages: true, currents: true });
   const [tranSettings, setTranSettings] = useState(DEFAULT_TRANSIENT);
@@ -51,6 +73,14 @@ export function App() {
     timer.current = window.setTimeout(() => setMessage(null), 4000);
   }, []);
 
+  // El aviso de arranque también desaparece solo.
+  useEffect(() => {
+    if (!startupMessage) return;
+    startupMessage = null;
+    const id = window.setTimeout(() => setMessage(null), 5000);
+    return () => window.clearTimeout(id);
+  }, []);
+
   /** Después de abrir un circuito: encuadrar y elegir el análisis más útil. */
   const onLoaded = useCallback(() => {
     setFitKey((k) => k + 1);
@@ -58,6 +88,31 @@ export function App() {
     setTranSettings(DEFAULT_TRANSIENT);
     setCursorFrac(0.1);
   }, []);
+
+  const pickExample = useCallback(
+    (ex: Example) => {
+      store.load(ex.build());
+      setGalleryOpen(false);
+      onLoaded();
+      setMode(ex.mode);
+      setSection('circuitos');
+      notify('Ejemplo cargado: ' + ex.title + '. Podés volver atrás con Deshacer.');
+    },
+    [onLoaded, notify],
+  );
+
+  /** Copia al portapapeles un link que contiene el circuito completo. */
+  const share = useCallback(async () => {
+    const url = shareUrl(store.getState().circuit, window.location.href);
+    try {
+      await navigator.clipboard.writeText(url);
+      notify('Link copiado al portapapeles. Cualquiera que lo abra ve este mismo circuito.');
+    } catch {
+      // Sin permiso de portapapeles: se deja el link en la barra de direcciones.
+      window.history.replaceState(null, '', url);
+      notify('El link quedó en la barra de direcciones: copialo desde ahí.');
+    }
+  }, [notify]);
 
   /** Cambia la frecuencia de todas las fuentes senoidales (un solo paso de undo). */
   const setFrequency = useCallback((f: number) => {
@@ -77,6 +132,32 @@ export function App() {
         onLoaded={onLoaded}
         onMessage={notify}
         showFileActions={section === 'circuitos'}
+        right={
+          <div className="topbar-actions">
+            <button type="button" className="btn" onClick={() => setGalleryOpen(true)}>
+              Ejemplos
+            </button>
+            {section === 'circuitos' && (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => void share()}
+                title="Copiar un link con este circuito"
+              >
+                Compartir
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+            >
+              {theme === 'dark' ? '☀' : '☾'}
+            </button>
+          </div>
+        }
         left={
           <nav className="main-tabs" role="tablist" aria-label="Secciones">
             <button
@@ -147,6 +228,7 @@ export function App() {
           )}
         </AnalysisPanel>
       </main>
+      <Gallery open={galleryOpen} onClose={() => setGalleryOpen(false)} onPick={pickExample} />
       {message && (
         <div className="toast" role="status">
           {message}
