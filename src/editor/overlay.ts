@@ -5,6 +5,7 @@
  */
 import { pointKey, type Circuit, type Point } from '../engine/circuit';
 import type { Netlist } from '../engine/netlist';
+import { R_OPEN } from '../components/types';
 import { formatResult } from '../engine/units';
 import { computeFlows, type Flow } from '../engine/wireCurrents';
 
@@ -64,11 +65,18 @@ export function buildOverlay(
   voltages: Map<string, number>,
   opts: OverlayOptions,
 ): Overlay {
+  // Pisos de ruido: lo que "pierde" un interruptor abierto (1 GΩ) se muestra como cero.
+  const vMax = Math.max(0, ...nodeVoltages.map(Math.abs));
+  const iMax = Math.max(0, ...[...currents.values()].map(Math.abs));
+  const vFloor = Math.max(1e-12, vMax * 1e-5);
+  const iFloor = Math.max(1e-12, iMax * 1e-6, (2 * vMax) / R_OPEN);
+
   const nodeTags: NodeTag[] = [];
   if (opts.showVoltages) {
     for (let n = 1; n < nl.nodeCount; n++) {
       const anchor = tagAnchor(circuit, nl.nodePoints[n]);
-      if (anchor) nodeTags.push({ ...anchor, text: `N${n} ${formatResult(nodeVoltages[n], 'V')}` });
+      if (anchor)
+        nodeTags.push({ ...anchor, text: `N${n} ${formatResult(nodeVoltages[n], 'V', vFloor)}` });
     }
   }
 
@@ -80,16 +88,16 @@ export function buildOverlay(
     const i = currents.get(c.id) ?? 0;
     maxCurrent = Math.max(maxCurrent, Math.abs(i));
     if (c.type === 'voltmeter') {
-      compText.set(c.id, formatResult(voltages.get(c.id) ?? 0, 'V'));
+      compText.set(c.id, formatResult(voltages.get(c.id) ?? 0, 'V', vFloor));
       continue;
     }
     if (c.type === 'ammeter') {
-      compText.set(c.id, formatResult(opts.animate ? i : Math.abs(i), 'A'));
+      compText.set(c.id, formatResult(opts.animate ? i : Math.abs(i), 'A', iFloor));
     } else if (opts.showCurrents) {
-      compText.set(c.id, formatResult(Math.abs(i), 'A'));
+      compText.set(c.id, formatResult(Math.abs(i), 'A', iFloor));
     }
   }
-  const threshold = Math.max(1e-9, maxCurrent * 1e-6);
+  const threshold = iFloor;
   for (const c of circuit.components) {
     const i = currents.get(c.id) ?? 0;
     compDir.set(c.id, !opts.animate || Math.abs(i) < threshold ? 0 : Math.sign(i));

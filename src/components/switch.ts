@@ -48,7 +48,7 @@ export const switchDef: ComponentDef = {
   ],
   summary: (p) =>
     bool(p, 'conmuta', true)
-      ? `${bool(p, 'closed') ? 'abre' : 'cierra'} en ${formatValue(num(p, 'tSwitch'), 's')}`
+      ? `${bool(p, 'closed') ? 'abre' : 'cierra'}: ${formatValue(num(p, 'tSwitch'), 's')}`
       : bool(p, 'closed')
         ? 'cerrado'
         : 'abierto',

@@ -1,27 +1,36 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from './editor/Canvas';
-import { buildOverlay } from './editor/overlay';
 import { loadLocal, saveLocal } from './editor/persistence';
 import { EditorStore } from './editor/store';
+import { exampleById } from './examples';
 import { useEditor } from './editor/useEditor';
-import { solveDC } from './engine/dc';
 import { AnalysisPanel, type Mode } from './ui/AnalysisPanel';
 import { DCPanel } from './ui/DCPanel';
 import { Inspector } from './ui/Inspector';
-import { attempt } from './ui/outcome';
 import { Palette } from './ui/Palette';
 import { TopBar } from './ui/TopBar';
+import { TransientPanel } from './ui/TransientPanel';
+import { DEFAULT_TRANSIENT, suggestMode, useAnalysis } from './ui/useAnalysis';
 
-const store = new EditorStore(loadLocal() ?? undefined);
+/** Circuito inicial: un ejemplo pedido por URL (#ejemplo=id) o el último autoguardado. */
+function initialCircuit() {
+  const m = /^#ejemplo=([\w-]+)/.exec(window.location.hash);
+  const example = m ? exampleById(m[1]) : undefined;
+  return example ? example.build() : (loadLocal() ?? undefined);
+}
 
-const MODES: Mode[] = ['dc'];
+const store = new EditorStore(initialCircuit());
+
+const MODES: Mode[] = ['dc', 'tran'];
 
 export function App() {
   const { circuit, selection } = useEditor(store);
   const [fitKey, setFitKey] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
-  const [mode, setMode] = useState<Mode>('dc');
+  const [mode, setMode] = useState<Mode>(() => suggestMode(store.getState().circuit, MODES));
   const [show, setShow] = useState({ voltages: true, currents: true });
+  const [tranSettings, setTranSettings] = useState(DEFAULT_TRANSIENT);
+  const [cursorFrac, setCursorFrac] = useState(0.1);
   const timer = useRef<number | undefined>(undefined);
 
   // Autoguardado con un pequeño retardo para no escribir en cada movimiento del mouse.
@@ -30,33 +39,27 @@ export function App() {
     return () => window.clearTimeout(id);
   }, [circuit]);
 
-  const notify = (text: string) => {
+  const notify = useCallback((text: string) => {
     setMessage(text);
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setMessage(null), 4000);
-  };
+  }, []);
 
-  const dc = useMemo(() => attempt(() => solveDC(circuit)), [circuit]);
+  /** Después de abrir un circuito: encuadrar y elegir el análisis más útil. */
+  const onLoaded = useCallback(() => {
+    setFitKey((k) => k + 1);
+    setMode(suggestMode(store.getState().circuit, MODES));
+    setTranSettings(DEFAULT_TRANSIENT);
+    setCursorFrac(0.1);
+  }, []);
 
-  const overlay = useMemo(() => {
-    if (!dc.ok) return null;
-    const sol = dc.value;
-    return buildOverlay(
-      circuit,
-      sol.netlist,
-      sol.nodeVoltages,
-      new Map(sol.elements.map((e) => [e.id, e.current])),
-      new Map(sol.elements.map((e) => [e.id, e.voltage])),
-      { showVoltages: show.voltages, showCurrents: show.currents, animate: true },
-    );
-  }, [dc, circuit, show]);
-
-  const error = dc.ok ? null : dc.error;
+  const analysis = useAnalysis(circuit, mode, show, tranSettings, cursorFrac);
+  const { error } = analysis;
   const errorIds = useMemo(() => new Set(error?.componentIds ?? []), [error]);
 
   return (
     <div className="app">
-      <TopBar store={store} onLoaded={() => setFitKey((k) => k + 1)} onMessage={notify} />
+      <TopBar store={store} onLoaded={onLoaded} onMessage={notify} />
       <main className="workspace with-panel">
         <aside className="sidebar">
           <Palette store={store} />
@@ -65,7 +68,7 @@ export function App() {
         <Canvas
           store={store}
           fitKey={fitKey}
-          overlay={overlay}
+          overlay={analysis.overlay}
           errorIds={errorIds}
           banner={
             error && error.code !== 'vacio' ? (
@@ -83,7 +86,21 @@ export function App() {
           onShow={setShow}
           error={error}
         >
-          {dc.ok && <DCPanel sol={dc.value} selection={selection} />}
+          {mode === 'dc' && analysis.dc?.ok && (
+            <DCPanel sol={analysis.dc.value} selection={selection} />
+          )}
+          {mode === 'tran' && analysis.tran?.ok && analysis.tranModel && (
+            <TransientPanel
+              result={analysis.tran.value}
+              model={analysis.tranModel}
+              settings={tranSettings}
+              onSettings={setTranSettings}
+              times={analysis.tranTimes}
+              selection={selection}
+              cursorFrac={cursorFrac}
+              onCursor={setCursorFrac}
+            />
+          )}
         </AnalysisPanel>
       </main>
       {message && (

@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'docs/img'] },
+  { ignores: ['dist', 'node_modules', 'docs/img', 'scripts/_*'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -1106,3 +1106,131 @@ input[type='checkbox'] {
     overflow: visible;
   }
 }
+
+/* --- Gráficos y controles del transitorio --------------------------------- */
+
+:root {
+  --s1: #b4470f;
+  --s2: #0b6f85;
+  --s3: #6a45c2;
+  --s4: #2f7d32;
+  --s5: #c2185b;
+  --s6: #5d6875;
+}
+
+:root[data-theme='dark'] {
+  --s1: #ffb454;
+  --s2: #5fd4c6;
+  --s3: #b79bff;
+  --s4: #8bd46e;
+  --s5: #ff8fb3;
+  --s6: #93a3af;
+}
+
+.plot {
+  width: 100%;
+  min-width: 0;
+}
+
+.plot-title {
+  margin: 14px 0 2px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.u-legend {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: left !important;
+  color: var(--muted);
+}
+
+.u-legend .u-series > * {
+  padding: 1px 4px;
+}
+
+.u-legend .u-marker {
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.u-select {
+  background: color-mix(in srgb, var(--accent-2) 14%, transparent);
+}
+
+.u-cursor-x,
+.u-cursor-y {
+  border-color: var(--line-strong) !important;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 10px;
+  margin-top: 10px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.value-input.readonly {
+  display: block;
+  background: var(--panel-2);
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chip-btn {
+  border: 1px solid var(--line-strong);
+  background: var(--canvas);
+  border-radius: 99px;
+  padding: 2px 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.chip-btn.on {
+  border-color: var(--chip, var(--accent));
+  color: var(--ink);
+  box-shadow: inset 0 -3px 0 var(--chip, var(--accent));
+}
+
+.scrub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.scrub input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.scrub .btn {
+  width: 38px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.scrub output {
+  min-width: 92px;
+  text-align: right;
+  font-size: 12px;
+}

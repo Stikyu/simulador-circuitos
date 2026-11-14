@@ -6,6 +6,7 @@ import '@fontsource/space-grotesk/700.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
 import './ui/styles.css';
+import './ui/theme';
 import { App } from './App';
 
 createRoot(document.getElementById('root')!).render(
