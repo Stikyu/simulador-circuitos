@@ -38,7 +38,7 @@ export const inductor: ComponentDef = {
         ctx.sys.stampAdmittance(el, 0, -1 / (ctx.omega * L));
         break;
       case 'ic':
-        ctx.sys.stampAdmittance(el, 0, 0, num(el.props, 'i0'));
+        ctx.sys.stampAdmittance(el, 0, 0, ctx.state.get(el.id)?.i ?? num(el.props, 'i0'));
         break;
       case 'tran': {
         const prev = ctx.state.get(el.id) ?? { v: 0, i: 0 };

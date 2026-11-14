@@ -14,6 +14,9 @@ export function switchClosed(props: Props, mode: AnalysisMode, t: number): boole
   return initial;
 }
 
+/** Comienzo del paso que termina en t (con un margen contra el redondeo). */
+export const intervalStart = (t: number, h: number): number => t - h * (1 - 1e-6);
+
 /**
  * Interruptor ideal. Siempre es una rama con corriente incógnita:
  *    cerrado:  va − vb = 0
@@ -49,7 +52,12 @@ export const switchDef: ComponentDef = {
       : bool(p, 'closed')
         ? 'cerrado'
         : 'abierto',
-  stamp: (el, ctx) =>
-    ctx.sys.stampVoltage(el, 0, 0, switchClosed(el.props, ctx.mode, ctx.t) ? 0 : R_OPEN),
+  // En el transitorio, el paso que termina en t resuelve el intervalo (t − h, t]:
+  // el estado que vale es el del COMIENZO del intervalo. Así una conmutación
+  // en t0 recién afecta al paso que arranca en t0.
+  stamp: (el, ctx) => {
+    const t = ctx.mode === 'tran' ? intervalStart(ctx.t, ctx.h) : ctx.t;
+    ctx.sys.stampVoltage(el, 0, 0, switchClosed(el.props, ctx.mode, t) ? 0 : R_OPEN);
+  },
   role: (mode, props, t) => (switchClosed(props, mode, t) ? 'voltage' : 'path'),
 };

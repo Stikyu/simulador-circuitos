@@ -39,7 +39,7 @@ export const capacitor: ComponentDef = {
         ctx.sys.stampAdmittance(el, 0, ctx.omega * C);
         break;
       case 'ic':
-        ctx.sys.stampVoltage(el, num(el.props, 'v0'));
+        ctx.sys.stampVoltage(el, ctx.state.get(el.id)?.v ?? num(el.props, 'v0'));
         break;
       case 'tran': {
         const prev = ctx.state.get(el.id) ?? { v: 0, i: 0 };
