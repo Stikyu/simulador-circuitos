@@ -33,6 +33,7 @@ export const PALETTE: ComponentType[] = [
   'resistor',
   'vdc',
   'idc',
+  'vac',
   'capacitor',
   'inductor',
   'switch',

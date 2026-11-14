@@ -30,7 +30,7 @@ export function ComponentView({
   const vertical = c.rot % 2 === 1;
   const summary = def.summary(c.props);
   const showLabels = c.type !== 'ground';
-  const lines = [summary, extra].filter((s): s is string => !!s);
+  const lines = [...summary.split('\n'), extra].filter((s): s is string => !!s);
   const lineClass = (text: string) => (text === extra ? 'label-extra' : 'label-val');
   return (
     <g
@@ -39,7 +39,9 @@ export function ComponentView({
       transform={`translate(${c.x * GRID} ${c.y * GRID})`}
       tabIndex={0}
       role="button"
-      aria-label={[`${def.name} ${c.id}`, summary, extra].filter(Boolean).join(', ')}
+      aria-label={[`${def.name} ${c.id}`, summary.replace('\n', ' '), extra]
+        .filter(Boolean)
+        .join(', ')}
       aria-pressed={selected}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
@@ -62,7 +64,7 @@ export function ComponentView({
       {showLabels &&
         (vertical ? (
           <>
-            <text className="label-id" x="20" y={lines.length > 1 ? -9 : -3}>
+            <text className="label-id" x="20" y={-3 - 6 * (lines.length - 1)}>
               {c.id}
             </text>
             {lines.map((t, i) => (
@@ -70,7 +72,7 @@ export function ComponentView({
                 key={i}
                 className={lineClass(t)}
                 x="20"
-                y={(lines.length > 1 ? 5 : 12) + i * 14}
+                y={12 - 6 * (lines.length - 1) + i * 14}
               >
                 {t}
               </text>

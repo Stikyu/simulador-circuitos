@@ -4,6 +4,8 @@ import { loadLocal, saveLocal } from './editor/persistence';
 import { EditorStore } from './editor/store';
 import { exampleById } from './examples';
 import { useEditor } from './editor/useEditor';
+import { setProp } from './editor/ops';
+import { ACPanel } from './ui/ACPanel';
 import { AnalysisPanel, type Mode } from './ui/AnalysisPanel';
 import { DCPanel } from './ui/DCPanel';
 import { Inspector } from './ui/Inspector';
@@ -21,7 +23,7 @@ function initialCircuit() {
 
 const store = new EditorStore(initialCircuit());
 
-const MODES: Mode[] = ['dc', 'tran'];
+const MODES: Mode[] = ['dc', 'tran', 'ac'];
 
 export function App() {
   const { circuit, selection } = useEditor(store);
@@ -51,6 +53,13 @@ export function App() {
     setMode(suggestMode(store.getState().circuit, MODES));
     setTranSettings(DEFAULT_TRANSIENT);
     setCursorFrac(0.1);
+  }, []);
+
+  /** Cambia la frecuencia de todas las fuentes senoidales (un solo paso de undo). */
+  const setFrequency = useCallback((f: number) => {
+    let next = store.getState().circuit;
+    for (const c of next.components) if (c.type === 'vac') next = setProp(next, c.id, 'f', f);
+    store.commit(next);
   }, []);
 
   const analysis = useAnalysis(circuit, mode, show, tranSettings, cursorFrac);
@@ -100,6 +109,9 @@ export function App() {
               cursorFrac={cursorFrac}
               onCursor={setCursorFrac}
             />
+          )}
+          {mode === 'ac' && analysis.ac?.ok && (
+            <ACPanel sol={analysis.ac.value} selection={selection} onFrequency={setFrequency} />
           )}
         </AnalysisPanel>
       </main>

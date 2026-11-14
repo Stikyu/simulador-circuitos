@@ -4,7 +4,9 @@
  */
 import { useMemo, useRef } from 'react';
 import { buildOverlay, type Overlay } from '../editor/overlay';
+import { solveACNetlist, type ACSolution } from '../engine/ac';
 import type { Circuit } from '../engine/circuit';
+import { abs } from '../engine/complex';
 import { solveDCNetlist, type DCSolution } from '../engine/dc';
 import type { CircuitError } from '../engine/errors';
 import { buildNetlist, type Netlist } from '../engine/netlist';
@@ -42,6 +44,7 @@ export interface Analysis {
   netlist: Netlist;
   dc: Outcome<DCSolution> | null;
   tran: Outcome<TransientResult> | null;
+  ac: Outcome<ACSolution> | null;
   tranModel: TransientModel | null;
   /** Tiempos efectivamente usados (los sugeridos si está en automático). */
   tranTimes: { tStop: number; dt: number };
@@ -98,6 +101,11 @@ export function useAnalysis(
   );
   const tranIndex = tran?.ok ? Math.round(cursorFrac * (tran.value.time.length - 1)) : 0;
 
+  const ac = useMemo(
+    () => (mode === 'ac' ? attempt(() => solveACNetlist(stable)) : null),
+    [mode, stable],
+  );
+
   const overlay = useMemo(() => {
     const base = { showVoltages: show.voltages, showCurrents: show.currents };
     if (mode === 'dc' && dc?.ok) {
@@ -123,16 +131,29 @@ export function useAnalysis(
         { ...base, animate: true, switchStates: switchStatesAt(r.netlist, r.time[k]) },
       );
     }
+    if (mode === 'ac' && ac?.ok) {
+      // En alterna se muestran los módulos (amplitud pico): no hay un sentido que animar.
+      const sol = ac.value;
+      return buildOverlay(
+        circuit,
+        fresh,
+        sol.nodeVoltages.map(abs),
+        new Map(sol.elements.map((e) => [e.id, abs(e.current)])),
+        new Map(sol.elements.map((e) => [e.id, abs(e.voltage)])),
+        { ...base, animate: false },
+      );
+    }
     return null;
-  }, [mode, dc, tran, tranIndex, circuit, fresh, show.voltages, show.currents]);
+  }, [mode, dc, tran, ac, tranIndex, circuit, fresh, show.voltages, show.currents]);
 
-  const active = mode === 'dc' ? dc : tran;
+  const active = mode === 'dc' ? dc : mode === 'tran' ? tran : ac;
   const error = active && !active.ok ? active.error : null;
 
   return {
     netlist: stable,
     dc,
     tran,
+    ac,
     tranModel,
     tranTimes: { tStop, dt },
     tranIndex,

@@ -17,7 +17,7 @@ export const vac: ComponentDef = {
     { key: 'f', label: 'Frecuencia', unit: 'Hz', kind: 'number', default: 50, positive: true },
     { key: 'phase', label: 'Fase', unit: '°', kind: 'number', default: 0 },
   ],
-  summary: (p) => `${formatValue(num(p, 'A'), 'V')} · ${formatValue(num(p, 'f'), 'Hz')}`,
+  summary: (p) => `${formatValue(num(p, 'A'), 'V')}\n${formatValue(num(p, 'f'), 'Hz')}`,
   stamp: (el, ctx) => {
     const A = num(el.props, 'A');
     const phi = (num(el.props, 'phase') * Math.PI) / 180;
