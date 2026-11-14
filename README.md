@@ -5,7 +5,14 @@ estudiantes de ingeniería (Física II, Electrotecnia, Electrónica). Corre ente
 
 **Demo:** https://stikyu.github.io/simulador-circuitos/
 
-> Proyecto en construcción por etapas. Este README se completa al cerrar cada una.
+## Estado por etapas
+
+- [x] **Etapa 1 – Editor:** grilla con snap, componentes, cables, mover/rotar/borrar, valores con prefijos, undo/redo, JSON y autoguardado.
+- [x] **Etapa 2 – DC resistivo:** MNA, tensiones de nodo, corrientes animadas, potencias, medidores, Thevenin y paso a paso.
+- [ ] **Etapa 3 – Transitorios:** capacitores, bobinas, interruptores, V(t) e I(t).
+- [ ] **Etapa 4 – Alterna:** fasores, potencias, Bode, resonancia y filtros.
+- [ ] **Etapa 5 – Campos:** electrostática, magnetostática e inducción.
+- [ ] **Etapa 6 – Pulido:** ejemplos, compartir por link, temas, accesibilidad.
 
 ## Cómo correrlo
 

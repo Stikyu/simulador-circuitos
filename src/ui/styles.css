@@ -723,3 +723,386 @@ input[type='checkbox'] {
     min-height: 340px;
   }
 }
+
+/* --- Resultados sobre el lienzo ------------------------------------------- */
+
+.flow {
+  stroke: var(--current);
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 13.9;
+  pointer-events: none;
+  animation: flow-move 0.4s linear infinite;
+}
+
+@keyframes flow-move {
+  from {
+    stroke-dashoffset: 14;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.flow-arrow {
+  fill: var(--current);
+  stroke: var(--canvas);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.node-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--accent-2);
+  paint-order: stroke;
+  stroke: var(--canvas);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.canvas-error {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--danger);
+  background: var(--danger-soft);
+  color: var(--ink);
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow {
+    animation: none;
+  }
+}
+
+/* --- Panel de análisis ---------------------------------------------------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+}
+
+.panel-head {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 14px 24px;
+}
+
+.segmented {
+  display: flex;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+
+.segmented button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.segmented button.active {
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.toggles label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.section {
+  border-bottom: 1px solid var(--line);
+}
+
+.section > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 0 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.section > summary::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.12s;
+}
+
+.section[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.section-body {
+  padding-bottom: 14px;
+}
+
+.section-body > p {
+  margin: 8px 0 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.results {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.results th,
+.results td {
+  padding: 5px 6px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+
+.results th:first-child {
+  text-align: left;
+}
+
+.results thead th {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.results tbody th {
+  font-weight: 600;
+}
+
+.results .row-selected {
+  background: var(--accent-soft);
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-ui);
+}
+
+.tag-out {
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  color: var(--ok);
+}
+
+.tag-in {
+  background: var(--panel-2);
+  color: var(--muted);
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 8px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.kv dt {
+  color: var(--muted);
+}
+
+.kv dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.formula {
+  margin: 6px 0;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: var(--panel-2);
+  border-left: 3px solid var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+:root[data-theme='dark'] .chip {
+  color: var(--accent);
+}
+
+.steps-method {
+  margin: 0 0 6px;
+}
+
+.steps-summary {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.steps ol {
+  list-style: none;
+  counter-reset: paso;
+  margin: 0;
+  padding: 0;
+}
+
+.steps li {
+  counter-increment: paso;
+  position: relative;
+  padding: 0 0 14px 30px;
+  border-left: 1px solid var(--line);
+  margin-left: 11px;
+}
+
+.steps li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.steps li::before {
+  content: counter(paso);
+  position: absolute;
+  left: -11px;
+  top: -1px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--panel);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+}
+
+.steps h4 {
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.steps p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.empty {
+  padding: 18px 0;
+}
+
+.empty h3,
+.error-card h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.empty ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+.empty li {
+  margin-bottom: 5px;
+}
+
+.error-card {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--danger);
+  background: var(--danger-soft);
+}
+
+.error-card p {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .workspace.with-panel {
+    grid-template-columns: 190px minmax(0, 1fr) 330px;
+  }
+}
+
+@media (max-width: 900px) {
+  .panel {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .panel-body {
+    overflow: visible;
+  }
+}
