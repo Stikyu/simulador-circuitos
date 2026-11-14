@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
 import {
   pointKey,
   pointOnSegment,
   samePoint,
   type Circuit,
-  type ComponentInstance,
   type Point,
   type Rotation,
 } from '../engine/circuit';
@@ -19,12 +26,14 @@ import {
   rotateItems,
   routeWire,
 } from './ops';
+import { ComponentView } from './ComponentView';
+import { GRID } from './grid';
+import type { Overlay } from './overlay';
 import type { EditorStore } from './store';
-import { ComponentSymbol, hitBox } from './symbols';
+import { ComponentSymbol } from './symbols';
 import { useEditor } from './useEditor';
 
-/** Tamaño de una celda de la grilla en píxeles (a zoom 1). */
-export const GRID = 20;
+export { GRID };
 
 interface View {
   x: number;
@@ -49,13 +58,19 @@ interface CanvasProps {
   store: EditorStore;
   /** Cambiar este número vuelve a encuadrar el circuito. */
   fitKey: number;
+  /** Resultados a dibujar encima del circuito. */
+  overlay?: Overlay | null;
+  /** Componentes a resaltar como problemáticos. */
+  errorIds?: ReadonlySet<string>;
+  /** Aviso flotante sobre el lienzo (por ejemplo, un error del circuito). */
+  banner?: ReactNode;
 }
 
 const isTyping = (t: EventTarget | null): boolean =>
   t instanceof HTMLElement &&
   (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
 
-export function Canvas({ store, fitKey }: CanvasProps) {
+export function Canvas({ store, fitKey, overlay, errorIds, banner }: CanvasProps) {
   const { circuit, selection, tool } = useEditor(store);
   const svgRef = useRef<SVGSVGElement>(null);
   const [view, setView] = useState<View>({ x: 200, y: 160, k: 1 });
@@ -408,11 +423,33 @@ export function Canvas({ store, fitKey }: CanvasProps) {
             </g>
           ))}
 
+          {overlay?.flows.map((f, i) => {
+            const fwd = f.current >= 0;
+            const a = fwd ? f.a : f.b;
+            const b = fwd ? f.b : f.a;
+            const speed = 22 + 70 * Math.sqrt(Math.abs(f.current) / (overlay.maxCurrent || 1));
+            return (
+              <line
+                key={`flow${i}`}
+                className="flow"
+                x1={a.x * GRID}
+                y1={a.y * GRID}
+                x2={b.x * GRID}
+                y2={b.y * GRID}
+                style={{ animationDuration: `${(14 / speed).toFixed(3)}s` }}
+              />
+            );
+          })}
+
           {circuit.components.map((c) => (
             <ComponentView
               key={c.id}
               c={c}
               selected={selected.has(c.id)}
+              error={errorIds?.has(c.id) ?? false}
+              extra={overlay?.compText.get(c.id)}
+              dir={overlay?.compDir.get(c.id)}
+              closed={overlay?.switchStates.get(c.id)}
               onSelect={() => store.select([c.id])}
             />
           ))}
@@ -435,6 +472,18 @@ export function Canvas({ store, fitKey }: CanvasProps) {
               </g>
             )),
           )}
+
+          {overlay?.nodeTags.map((t, i) => (
+            <text
+              key={`tag${i}`}
+              className="node-tag"
+              x={t.at.x * GRID + (t.vertical ? 7 : 0)}
+              y={t.at.y * GRID + (t.vertical ? 4 : -7)}
+              textAnchor={t.vertical ? 'start' : 'middle'}
+            >
+              {t.text}
+            </text>
+          ))}
 
           {ghostWire.map(([a, b], i) => (
             <line
@@ -472,6 +521,8 @@ export function Canvas({ store, fitKey }: CanvasProps) {
         </g>
       </svg>
 
+      {banner}
+
       <div className="canvas-tools" role="group" aria-label="Zoom">
         <button type="button" onClick={() => zoomAt(1.25)} aria-label="Acercar" title="Acercar">
           +
@@ -495,61 +546,5 @@ export function Canvas({ store, fitKey }: CanvasProps) {
             : 'Arrastrá desde un terminal para cablear · R rota · Supr borra')}
       </div>
     </div>
-  );
-}
-
-interface ComponentViewProps {
-  c: ComponentInstance;
-  selected: boolean;
-  onSelect: () => void;
-}
-
-function ComponentView({ c, selected, onSelect }: ComponentViewProps) {
-  const def = defOf(c.type);
-  const hb = hitBox(c.type);
-  const vertical = c.rot % 2 === 1;
-  const summary = def.summary(c.props);
-  const showLabels = c.type !== 'ground';
-  return (
-    <g
-      data-id={c.id}
-      className={`comp ${selected ? 'selected' : ''}`}
-      transform={`translate(${c.x * GRID} ${c.y * GRID})`}
-      tabIndex={0}
-      role="button"
-      aria-label={`${def.name} ${c.id}${summary ? `, ${summary}` : ''}`}
-      aria-pressed={selected}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-    >
-      <g transform={`rotate(${c.rot * 90})`}>
-        <rect className="comp-hit" x={hb.x} y={hb.y} width={hb.w} height={hb.h} rx="6" />
-        <ComponentSymbol type={c.type} rot={c.rot} props={c.props} />
-      </g>
-      {showLabels &&
-        (vertical ? (
-          <>
-            <text className="label-id" x="20" y="-3">
-              {c.id}
-            </text>
-            <text className="label-val" x="20" y="12">
-              {summary}
-            </text>
-          </>
-        ) : (
-          <>
-            <text className="label-id" x="0" y="-20" textAnchor="middle">
-              {c.id}
-            </text>
-            <text className="label-val" x="0" y="30" textAnchor="middle">
-              {summary}
-            </text>
-          </>
-        ))}
-    </g>
   );
 }
