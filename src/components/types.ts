@@ -1,4 +1,6 @@
 import type { ComponentType, Point, PropValue } from '../engine/circuit';
+import type { AnalysisMode, StampCtx } from '../engine/mna';
+import type { NetElement } from '../engine/netlist';
 
 export interface PropDef {
   key: string;
@@ -14,8 +16,17 @@ export interface PropDef {
 export type Props = Record<string, PropValue>;
 
 /**
+ * Papel topológico de un componente en un tipo de análisis:
+ *  - 'voltage': impone la tensión entre sus terminales (fuente, cable ideal).
+ *  - 'path': deja pasar corriente (ata el potencial de sus nodos entre sí).
+ *  - 'open': no une eléctricamente sus nodos (capacitor en DC, fuente de corriente).
+ * Se usa para detectar nodos flotantes y lazos de fuentes ANTES de resolver.
+ */
+export type Role = 'voltage' | 'path' | 'open';
+
+/**
  * Definición de un tipo de componente: geometría de terminales, propiedades
- * editables y (desde la etapa 2) cómo aporta a la matriz MNA.
+ * editables y cómo aporta ("estampa") a la matriz MNA.
  */
 export interface ComponentDef {
   type: ComponentType;
@@ -28,6 +39,9 @@ export interface ComponentDef {
   props: PropDef[];
   /** Texto corto que acompaña al símbolo (por ejemplo "4,7 kΩ"). */
   summary: (props: Props) => string;
+  /** Aporte del componente al sistema MNA según el tipo de análisis. */
+  stamp: (el: NetElement, ctx: StampCtx) => void;
+  role: (mode: AnalysisMode, props: Props, t: number) => Role;
 }
 
 export const num = (props: Props, key: string, fallback = 0): number => {
@@ -45,3 +59,6 @@ export const TWO_TERMINALS: Point[] = [
   { x: -2, y: 0 },
   { x: 2, y: 0 },
 ];
+
+/** Resistencia de un voltímetro y de un interruptor abierto: "casi" infinita. */
+export const R_OPEN = 1e9;

@@ -9,4 +9,7 @@ export const vdc: ComponentDef = {
   terminals: TWO_TERMINALS,
   props: [{ key: 'V', label: 'Tensión', unit: 'V', kind: 'number', default: 10 }],
   summary: (p) => formatValue(num(p, 'V'), 'V'),
+  // va − vb = V. En AC (análisis de señal) una fuente continua vale 0: es un corto.
+  stamp: (el, ctx) => ctx.sys.stampVoltage(el, ctx.mode === 'ac' ? 0 : num(el.props, 'V')),
+  role: () => 'voltage',
 };

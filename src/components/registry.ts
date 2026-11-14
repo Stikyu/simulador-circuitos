@@ -4,19 +4,39 @@ import {
   type ComponentType,
   type Point,
 } from '../engine/circuit';
+import { capacitor } from './capacitor';
 import { ground } from './ground';
+import { idc } from './idc';
+import { inductor } from './inductor';
+import { ammeter, voltmeter } from './meters';
 import { resistor } from './resistor';
+import { switchDef } from './switch';
 import type { ComponentDef, Props } from './types';
+import { vac } from './vac';
 import { vdc } from './vdc';
 
 export const COMPONENTS: Record<ComponentType, ComponentDef> = {
   resistor,
   vdc,
+  idc,
+  vac,
+  capacitor,
+  inductor,
+  switch: switchDef,
+  ammeter,
+  voltmeter,
   ground,
 };
 
 /** Orden en que aparecen en la paleta. */
-export const PALETTE: ComponentType[] = ['resistor', 'vdc', 'ground'];
+export const PALETTE: ComponentType[] = [
+  'resistor',
+  'vdc',
+  'idc',
+  'ground',
+  'ammeter',
+  'voltmeter',
+];
 
 export const KNOWN_TYPES = Object.keys(COMPONENTS);
 

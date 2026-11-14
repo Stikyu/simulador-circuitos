@@ -10,4 +10,7 @@ export const resistor: ComponentDef = {
     { key: 'R', label: 'Resistencia', unit: 'Ω', kind: 'number', default: 1000, positive: true },
   ],
   summary: (p) => formatValue(num(p, 'R'), 'Ω'),
+  // Ley de Ohm: i = (va − vb)/R. Igual en DC, AC y transitorio.
+  stamp: (el, ctx) => ctx.sys.stampAdmittance(el, 1 / num(el.props, 'R', 1000)),
+  role: () => 'path',
 };
